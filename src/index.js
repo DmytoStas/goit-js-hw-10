@@ -1,50 +1,45 @@
-var debounce = require('lodash.debounce');
 import './css/styles.css';
 import { refs } from './js/refs';
 import { fetchCountries } from './js/fetchCountries';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-// import { makeListItemsMarkup } from './js/makeListItemsMarkup';
-// import countriesTpl from './templates/listItemMarkup.hbs';
-// const compiledTemplate = require('./template.handlebars');
-// const countriesTpl = require('../templates/listItemMarkup.hbs');
-// const countrie = {
-//   name: 'Ukr',
-//   flag: 'https://flagcdn.com/ua.svg',
-// };
-// console.log(countriesTpl(countrie));
+import { makeItemsMarkup } from './js/makeItemsMarkup';
+import { makeCountrieCardMarkup } from './js/makeCountrieCardMarkup';
+import { clearMarkup } from './js/clearMarkup';
+var debounce = require('lodash.debounce');
 
 const DEBOUNCE_DELAY = 300;
 
 const { searchInput, countryList, countryInfo } = refs;
 
-console.log(searchInput.value);
-
-searchInput.addEventListener('input', debounce(inputHendler, DEBOUNCE_DELAY));
-
-function inputHendler(e) {
+function inputHendler() {
   const searchCountrieName = searchInput.value.trim();
 
   if (searchCountrieName === '') {
+    clearMarkup(refs);
     return;
   }
 
   fetchCountries(searchCountrieName)
     .then(countries => {
-      // const countrie = {
-      //   name: 'Ukr',
-      //   flag: 'https://flagcdn.com/ua.svg',
-      // };
       if (countries.length > 10) {
         Notify.info(
           'Too many matches found. Please enter a more specific name.'
         );
+      } else if (countries.length > 2 && countries.length <= 10) {
+        clearMarkup(refs);
+
+        makeItemsMarkup({ countryList, countries });
+      } else if (countries.length === 1) {
+        clearMarkup(refs);
+
+        const countrie = countries[0];
+
+        makeCountrieCardMarkup({ countryInfo, countrie });
       }
-      // } else if (countries.length > 2 && countries.length <= 10) {
-      // countryList.insertAdjacentHTML('afterbegin', countriesTpl(countrie));
-      // }
-      console.log(countries);
     })
     .catch(error => {
-      console.log(error);
+      Notify.failure('Oops, there is no country with that name');
     });
 }
+
+searchInput.addEventListener('input', debounce(inputHendler, DEBOUNCE_DELAY));

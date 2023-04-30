@@ -5,5 +5,11 @@
   "reporters": [
     "...",
     "parcel-reporter-clean-dist"
-  ]
+  ],
+  "transformers": {
+    "*.pug": ["parcel-transformer-pug-precompile"]
+  }
+
 }
+
+
